@@ -1,34 +1,30 @@
-from flask import Flask
+from flask import Flask, render_template
 import mysql.connector
+import os
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-	#connect to MarianDB
-	conn = mysql.connector.connect (
-		host="localhost",
-		user="user",
-		password="user1981",
-		database="exampledb"
-	)
+    try:
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="user",
+            password="user1981",
+            database="exampledb"
+        )
 
-	cursor = conn.cursor()
-	cursor.execute("SELECT NOW()")
-	result = cursor.fetchone()
+        cursor = conn.cursor()
+        cursor.execute("SELECT NOW()")
+        result = cursor.fetchone()
 
-	#clean up
-	cursor.close()
-	conn.close()
+    except mysql.connector.Error as err:
+        return f"<h1>Tietokantavirhe: {err}</h1>"
+    finally:
+        cursor.close()
+        conn.close()
 
+    return render_template('index.html', time=result[0])
 
-	html = f"""
-	<h1>Palvelimen kellonaika {result[0]}</h1>
-	<h1>Palvelimen kellonajan saat päivitettyä päivittämällä sivun</h1>
-	<h1>Hyvää päivän jatkoa :)</h1>
-	<h1>&hearts;&hearts;&hearts;&hearts;&hearts;&hearts;&hearts;</h1>
-	"""
-	return html
-	
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000)
